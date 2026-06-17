@@ -397,15 +397,15 @@ async function render() {
 
   try {
     const imgRes = await fetch(`${SCRIPT_URL}?action=image&id=${item.id}`);
-    const html   = await imgRes.text();
-    // Extract base64 src from returned HTML
-    const match  = html.match(/src="([^"]+)"/);
-    if (match) {
+    const json   = await imgRes.json();
+    if (json.data) {
       const img = document.createElement('img');
-      img.src = match[1];
+      img.src = `data:${json.mimeType};base64,${json.data}`;
       img.alt = item.name;
       frame.innerHTML = '';
       frame.appendChild(img);
+    } else {
+      frame.innerHTML = '<div class="img-loading">⚠️ فشل تحميل الصورة</div>';
     }
   } catch(e) {
     frame.innerHTML = '<div class="img-loading">⚠️ فشل تحميل الصورة</div>';
