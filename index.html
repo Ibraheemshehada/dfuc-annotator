@@ -265,11 +265,16 @@
     <div class="stat"><div class="stat-num" id="s-rem">0</div><div class="stat-lbl">متبقي</div></div>
   </div>
 
-  <!-- Loading -->
+  <!-- Name entry -->
   <div class="card" id="setup-card">
-    <div style="text-align:center; padding:1.5rem 0;">
-      <div class="spinner" style="margin:0 auto 12px;"></div>
-      <div style="font-size:14px;color:var(--muted)">جاري تحميل الصور من Google Drive...</div>
+    <div class="card-title">👤 أدخل اسمك للبدء</div>
+    <input class="setup-input" id="annotator-input" type="text"
+           placeholder="مثال: د. محمد" autocomplete="off"
+           onkeydown="if(event.key==='Enter') beginSession()">
+    <button class="btn-start" id="start-btn" onclick="beginSession()">ابدأ التصنيف</button>
+    <div id="load-status" style="text-align:center;margin-top:12px;font-size:13px;color:var(--muted);display:none">
+      <div class="spinner" style="margin:0 auto 8px;"></div>
+      جاري تحميل الصور...
     </div>
   </div>
 
@@ -339,12 +344,18 @@ function buildCats() {
   });
 }
 
-// ── Auto-load on page open ──
-async function startLoading() {
-  // Ask annotator name
-  const name = prompt('أدخل اسمك (سيُحفظ مع كل تصنيف):');
-  if (!name || !name.trim()) { startLoading(); return; }
-  ANNOTATOR = name.trim();
+// ── Called when user clicks start ──
+async function beginSession() {
+  const name = document.getElementById('annotator-input').value.trim();
+  if (!name) {
+    document.getElementById('annotator-input').style.borderColor = 'var(--red)';
+    return;
+  }
+  ANNOTATOR = name;
+
+  document.getElementById('start-btn').disabled = true;
+  document.getElementById('annotator-input').disabled = true;
+  document.getElementById('load-status').style.display = 'block';
 
   try {
     const [trainRes, testRes, savedRes] = await Promise.all([
@@ -383,6 +394,9 @@ async function startLoading() {
   activeFolder = 'train';
   render();
 }
+
+// ── Keep for compatibility ──
+async function startLoading() {}
 
 // ── Render current image ──
 async function render() {
@@ -528,7 +542,6 @@ function exportCSV() {
   const a    = document.createElement('a');
   a.href = url; a.download = 'dfuc2020_annotations.csv'; a.click();
 }
-window.addEventListener("load", startLoading);
 </script>
 </body>
 </html>
