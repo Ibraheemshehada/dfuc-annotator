@@ -265,14 +265,12 @@
     <div class="stat"><div class="stat-num" id="s-rem">0</div><div class="stat-lbl">متبقي</div></div>
   </div>
 
-  <!-- Setup -->
+  <!-- Loading -->
   <div class="card" id="setup-card">
-    <div class="card-title">⚙️ إعداد الاتصال بـ Google Drive</div>
-    <div class="lbl" style="margin-bottom:4px">رابط Apps Script (Web App URL)</div>
-    <input class="setup-input" id="script-url" type="url"
-           placeholder="https://script.google.com/macros/s/YOUR_ID/exec">
-    <div class="error-msg" id="url-error" style="display:none">الرجاء إدخال رابط صحيح</div>
-    <button class="btn-start" id="start-btn" onclick="startLoading()">تحميل الصور والبدء</button>
+    <div style="text-align:center; padding:1.5rem 0;">
+      <div class="spinner" style="margin:0 auto 12px;"></div>
+      <div style="font-size:14px;color:var(--muted)">جاري تحميل الصور من Google Drive...</div>
+    </div>
   </div>
 
   <!-- Annotator (hidden until loaded) -->
@@ -320,7 +318,8 @@
 <script>
 const CATS = ['epithelial','granulation','necrosis','fibrin','callus','slough'];
 
-let SCRIPT_URL = '';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwbznIDWEwXlli0owWiM7zXbSjRhGoKTGZrCEZuQzFHMWWTwGFc1uQZv8EAd8he3ivG/exec';
+let ANNOTATOR = '';
 let data = { train: [], test: [] };
 let labels = {};
 let cur = 0;
@@ -340,31 +339,40 @@ function buildCats() {
   });
 }
 
-// ── Load image list from Apps Script ──
+// ── Auto-load on page open ──
 async function startLoading() {
-  const url = document.getElementById('script-url').value.trim();
-  if (!url.startsWith('https://script.google.com')) {
-    document.getElementById('url-error').style.display = 'block';
-    return;
-  }
-  document.getElementById('url-error').style.display = 'none';
-  SCRIPT_URL = url;
-
-  const btn = document.getElementById('start-btn');
-  btn.disabled = true;
-  btn.textContent = 'جاري التحميل...';
+  // Ask annotator name
+  const name = prompt('أدخل اسمك (سيُحفظ مع كل تصنيف):');
+  if (!name || !name.trim()) { startLoading(); return; }
+  ANNOTATOR = name.trim();
 
   try {
-    const [trainRes, testRes] = await Promise.all([
+    const [trainRes, testRes, savedRes] = await Promise.all([
       fetch(`${SCRIPT_URL}?action=list&folder=train`).then(r => r.json()),
-      fetch(`${SCRIPT_URL}?action=list&folder=test`).then(r => r.json())
+      fetch(`${SCRIPT_URL}?action=list&folder=test`).then(r => r.json()),
+      fetch(`${SCRIPT_URL}?action=loadAll`).then(r => r.json())
     ]);
     data.train = trainRes;
     data.test  = testRes;
+
+    // Restore saved labels for this annotator
+    savedRes.forEach(row => {
+      if (row.annotator === ANNOTATOR) {
+        const key = row.folder + '/' + row.imageName;
+        labels[key] = {
+          epithelial:  Number(row.epithelial),
+          granulation: Number(row.granulation),
+          necrosis:    Number(row.necrosis),
+          fibrin:      Number(row.fibrin),
+          callus:      Number(row.callus),
+          slough:      Number(row.slough)
+        };
+      }
+    });
+
   } catch(e) {
-    btn.disabled = false;
-    btn.textContent = 'تحميل الصور والبدء';
-    alert('فشل الاتصال. تحقق من الرابط وصلاحيات Apps Script.');
+    document.getElementById('setup-card').innerHTML =
+      '<div style="text-align:center;padding:1.5rem 0;color:var(--red)">⚠️ فشل الاتصال — تحقق من إعدادات Apps Script</div>';
     return;
   }
 
@@ -450,6 +458,23 @@ function toggle(cat) {
   const done  = Object.keys(labels).length;
   document.getElementById('s-done').textContent = done;
   document.getElementById('s-rem').textContent  = total - done;
+  // auto-save to Google Sheets
+  saveToSheets(item.name, activeFolder, labels[key]);
+}
+
+async function saveToSheets(imageName, folder, lbl) {
+  const cats = ['epithelial','granulation','necrosis','fibrin','callus','slough'];
+  const params = new URLSearchParams({
+    action: 'save',
+    imageName, folder,
+    annotator: ANNOTATOR,
+    ...Object.fromEntries(cats.map(c => [c, lbl[c] || 0]))
+  });
+  try {
+    await fetch(`${SCRIPT_URL}?${params}`);
+  } catch(e) {
+    console.warn('فشل الحفظ التلقائي:', e);
+  }
 }
 
 function go(dir) {
@@ -503,6 +528,7 @@ function exportCSV() {
   const a    = document.createElement('a');
   a.href = url; a.download = 'dfuc2020_annotations.csv'; a.click();
 }
+window.addEventListener("load", startLoading);
 </script>
 </body>
 </html>
