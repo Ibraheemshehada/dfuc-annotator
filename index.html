@@ -6,7 +6,6 @@
 <title>DFUC 2020 — أداة تصنيف الجروح</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
     --green:      #1D9E75;
     --green-dark: #0F6E56;
@@ -20,7 +19,6 @@
     --card-bg:    #FFFFFF;
     --radius:     10px;
   }
-
   body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     background: var(--gray-bg);
@@ -28,219 +26,113 @@
     min-height: 100vh;
     padding: 1rem;
   }
-
   .app { max-width: 760px; margin: 0 auto; }
 
-  /* ── Header ── */
+  /* Header */
   .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-    padding: 0.75rem 1rem;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem; padding: 0.75rem 1rem;
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
   }
   .header h1 { font-size: 16px; font-weight: 600; }
-  .header-right { display: flex; align-items: center; gap: 10px; }
   .prog-text { font-size: 13px; color: var(--muted); }
 
-  /* ── Progress ── */
-  .progress-wrap {
-    background: var(--border);
-    border-radius: 99px;
-    height: 5px;
-    margin-bottom: 1rem;
-    overflow: hidden;
-  }
-  .progress-fill {
-    background: var(--green);
-    height: 100%;
-    border-radius: 99px;
-    transition: width 0.3s ease;
-    width: 0%;
-  }
+  /* Progress */
+  .progress-wrap { background: var(--border); border-radius: 99px; height: 5px; margin-bottom: 1rem; overflow: hidden; }
+  .progress-fill { background: var(--green); height: 100%; border-radius: 99px; transition: width 0.3s ease; width: 0%; }
 
-  /* ── Stats row ── */
+  /* Stats */
   .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1rem; }
-  .stat {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 10px 14px;
-    text-align: center;
-  }
+  .stat { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; text-align: center; }
   .stat-num { font-size: 22px; font-weight: 600; }
   .stat-lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-  /* ── Setup card ── */
-  .card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-  }
+  /* Card */
+  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
   .card-title { font-size: 15px; font-weight: 600; margin-bottom: 1rem; }
 
+  /* Inputs */
   .setup-input {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 14px;
-    background: var(--gray-bg);
-    margin-bottom: 8px;
-    direction: ltr;
+    width: 100%; padding: 10px 14px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 14px; background: var(--gray-bg);
+    margin-bottom: 10px; direction: ltr; font-family: inherit;
   }
   .setup-input:focus { outline: none; border-color: var(--green); }
+  .setup-input.rtl { direction: rtl; }
 
   .lbl { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
 
-  /* ── Folder tabs ── */
+  /* Step indicator */
+  .steps { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+  .step { flex: 1; height: 4px; border-radius: 99px; background: var(--border); }
+  .step.active { background: var(--green); }
+
+  /* Folder tabs */
   .folder-tabs { display: flex; gap: 6px; margin-bottom: 1rem; }
-  .folder-tab {
-    padding: 6px 16px;
-    border-radius: 99px;
-    border: 1px solid var(--border);
-    background: var(--card-bg);
-    font-size: 13px;
-    cursor: pointer;
-    font-weight: 500;
-  }
+  .folder-tab { padding: 6px 16px; border-radius: 99px; border: 1px solid var(--border); background: var(--card-bg); font-size: 13px; cursor: pointer; font-weight: 500; }
   .folder-tab.active { background: var(--green); color: #fff; border-color: var(--green-dark); }
 
-  /* ── Image viewer ── */
-  .img-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-  }
+  /* Image */
+  .img-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
   .img-name-txt { font-size: 14px; font-weight: 500; }
-  .badge {
-    font-size: 11px;
-    padding: 2px 9px;
-    border-radius: 99px;
-    font-weight: 500;
-  }
-  .badge-train  { background: #E6F1FB; color: #185FA5; }
-  .badge-test   { background: #FAEEDA; color: #633806; }
-  .badge-done   { background: var(--green-bg); color: var(--green-dark); }
-  .badge-skip   { background: var(--red-bg); color: #A32D2D; }
+  .badge { font-size: 11px; padding: 2px 9px; border-radius: 99px; font-weight: 500; }
+  .badge-train { background: #E6F1FB; color: #185FA5; }
+  .badge-test  { background: #FAEEDA; color: #633806; }
+  .badge-done  { background: var(--green-bg); color: var(--green-dark); }
+  .badge-skip  { background: var(--red-bg); color: #A32D2D; }
 
   .img-frame {
-    width: 100%;
-    height: 280px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--gray-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    margin-bottom: 1rem;
-    position: relative;
+    width: 100%; height: 280px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--gray-bg); display: flex; align-items: center; justify-content: center;
+    overflow: hidden; margin-bottom: 1rem; position: relative;
   }
   .img-frame img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .img-loading {
-    font-size: 13px;
-    color: var(--muted);
-    text-align: center;
-  }
+  .img-loading { font-size: 13px; color: var(--muted); text-align: center; }
   .spinner {
-    width: 28px; height: 28px;
-    border: 3px solid var(--border);
-    border-top-color: var(--green);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 8px;
+    width: 28px; height: 28px; border: 3px solid var(--border);
+    border-top-color: var(--green); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 8px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ── Categories ── */
+  /* Categories */
   .cat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1rem; }
   .cat-btn {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--card-bg);
-    cursor: pointer;
-    transition: all 0.15s;
-    font-size: 13px;
-    font-weight: 500;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--card-bg); cursor: pointer; transition: all 0.15s;
+    font-size: 13px; font-weight: 500;
   }
   .cat-btn:hover { background: var(--gray-bg); }
   .cat-btn.on { background: var(--green); border-color: var(--green-dark); color: #fff; }
   .cat-val { font-size: 14px; font-weight: 700; }
   .cat-btn.on .cat-val { color: #fff; }
 
-  /* ── Nav buttons ── */
+  /* Buttons */
   .nav-row { display: flex; gap: 8px; margin-bottom: 8px; }
-  .btn {
-    flex: 1;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--card-bg);
-    font-size: 14px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.15s;
-  }
+  .btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); font-size: 14px; cursor: pointer; font-weight: 500; transition: all 0.15s; font-family: inherit; }
   .btn:hover:not(:disabled) { background: var(--gray-bg); }
   .btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .btn-primary { background: var(--green); border-color: var(--green-dark); color: #fff; }
   .btn-primary:hover:not(:disabled) { background: var(--green-dark); }
 
   .actions { display: flex; gap: 8px; }
-  .action-btn {
-    flex: 1;
-    padding: 9px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--card-bg);
-    font-size: 13px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    transition: all 0.15s;
-    font-weight: 500;
-  }
+  .action-btn { flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.15s; font-weight: 500; font-family: inherit; }
   .action-btn:hover { background: var(--gray-bg); }
   .action-btn.export { color: var(--green-dark); border-color: var(--green); }
-  .action-btn.danger  { color: #A32D2D; border-color: #F09595; }
+  .action-btn.danger { color: #A32D2D; border-color: #F09595; }
   .action-btn.danger:hover { background: var(--red-bg); }
 
-  /* ── Start button ── */
-  .btn-start {
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    background: var(--green);
-    color: #fff;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: background 0.15s;
-  }
-  .btn-start:hover { background: var(--green-dark); }
-  .btn-start:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+  .btn-next { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--green); color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; }
+  .btn-next:hover { background: var(--green-dark); }
+  .btn-next:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
 
-  .error-msg { font-size: 13px; color: var(--red); margin-top: 6px; }
+  .error-msg { font-size: 13px; color: var(--red); margin-top: 6px; display: none; }
+  .save-indicator { font-size: 12px; color: var(--green); margin-top: 6px; text-align: center; opacity: 0; transition: opacity 0.3s; }
+  .save-indicator.show { opacity: 1; }
 
   @media (max-width: 500px) {
     .cat-grid { grid-template-columns: repeat(2,1fr); }
-    .stats { grid-template-columns: repeat(3,1fr); }
   }
 </style>
 </head>
@@ -250,9 +142,7 @@
   <!-- Header -->
   <div class="header">
     <h1>🩹 DFUC 2020 — تصنيف الجروح</h1>
-    <div class="header-right">
-      <span class="prog-text" id="prog-text">—</span>
-    </div>
+    <span class="prog-text" id="prog-text">—</span>
   </div>
 
   <!-- Progress bar -->
@@ -265,29 +155,41 @@
     <div class="stat"><div class="stat-num" id="s-rem">0</div><div class="stat-lbl">متبقي</div></div>
   </div>
 
-  <!-- Name entry -->
-  <div class="card" id="setup-card">
-    <div class="card-title">👤 أدخل اسمك للبدء</div>
-    <input class="setup-input" id="annotator-input" type="text"
+  <!-- Step 1: Name -->
+  <div class="card" id="step1">
+    <div class="steps"><div class="step active"></div><div class="step"></div></div>
+    <div class="card-title">👤 الخطوة 1 — أدخل اسمك</div>
+    <div class="lbl">الاسم</div>
+    <input class="setup-input rtl" id="name-input" type="text"
            placeholder="مثال: د. محمد" autocomplete="off"
-           onkeydown="if(event.key==='Enter') beginSession()">
-    <button class="btn-start" id="start-btn" onclick="beginSession()">ابدأ التصنيف</button>
-    <div id="load-status" style="text-align:center;margin-top:12px;font-size:13px;color:var(--muted);display:none">
-      <div class="spinner" style="margin:0 auto 8px;"></div>
-      جاري تحميل الصور...
-    </div>
+           onkeydown="if(event.key==='Enter') goStep2()">
+    <div class="error-msg" id="name-error">الرجاء إدخال اسمك</div>
+    <button class="btn-next" onclick="goStep2()">التالي ←</button>
   </div>
 
-  <!-- Annotator (hidden until loaded) -->
-  <div id="annotator" style="display:none">
+  <!-- Step 2: Script URL -->
+  <div class="card" id="step2" style="display:none">
+    <div class="steps"><div class="step active"></div><div class="step active"></div></div>
+    <div class="card-title">🔗 الخطوة 2 — أدخل رابط Apps Script</div>
+    <div class="lbl">رابط Web App</div>
+    <input class="setup-input" id="url-input" type="url"
+           placeholder="https://script.google.com/macros/s/.../exec"
+           onkeydown="if(event.key==='Enter') startLoad()">
+    <div class="error-msg" id="url-error">الرجاء إدخال رابط صحيح</div>
+    <div id="loading-status" style="display:none; text-align:center; padding: 0.75rem 0;">
+      <div class="spinner"></div>
+      <div style="font-size:13px; color:var(--muted)">جاري تحميل الصور...</div>
+    </div>
+    <button class="btn-next" id="load-btn" onclick="startLoad()">ابدأ التصنيف ←</button>
+  </div>
 
-    <!-- Folder tabs -->
+  <!-- Annotator -->
+  <div id="annotator" style="display:none">
     <div class="folder-tabs">
       <button class="folder-tab active" id="tab-train" onclick="switchFolder('train')">📁 Train</button>
       <button class="folder-tab"        id="tab-test"  onclick="switchFolder('test')">📁 Test</button>
     </div>
 
-    <!-- Image card -->
     <div class="card">
       <div class="img-meta">
         <span class="img-name-txt" id="img-name">—</span>
@@ -295,67 +197,60 @@
         <span class="badge badge-done" id="done-badge" style="display:none">✓ تم</span>
         <span class="badge badge-skip" id="skip-badge" style="display:none">○ لم يُصنَّف</span>
       </div>
-
       <div class="img-frame" id="img-frame">
         <div class="img-loading"><div class="spinner"></div>جاري التحميل...</div>
       </div>
-
       <div class="lbl" style="margin-bottom:8px">التصنيف — اضغط لتبديل 0 / 1</div>
       <div class="cat-grid" id="cat-grid"></div>
+      <div class="save-indicator" id="save-ind">✓ تم الحفظ على Sheets</div>
     </div>
 
-    <!-- Navigation -->
     <div class="nav-row">
       <button class="btn" id="prev-btn" onclick="go(-1)">→ السابق</button>
       <button class="btn btn-primary" id="next-btn" onclick="go(1)">التالي ←</button>
     </div>
-
-    <!-- Actions -->
     <div class="actions">
       <button class="action-btn export" onclick="exportCSV()">⬇ تصدير CSV</button>
       <button class="action-btn"        onclick="jumpFirst()">⏭ أول غير مصنَّف</button>
       <button class="action-btn danger" onclick="resetCur()">↺ إعادة تعيين</button>
     </div>
-
   </div>
-</div>
 
+</div>
 <script>
 const CATS = ['epithelial','granulation','necrosis','fibrin','callus','slough'];
-
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwbznIDWEwXlli0owWiM7zXbSjRhGoKTGZrCEZuQzFHMWWTwGFc1uQZv8EAd8he3ivG/exec';
-let ANNOTATOR = '';
+let SCRIPT_URL = '';
+let ANNOTATOR  = '';
 let data = { train: [], test: [] };
 let labels = {};
 let cur = 0;
 let activeFolder = 'train';
 
-// ── Build category buttons ──
-function buildCats() {
-  const g = document.getElementById('cat-grid');
-  g.innerHTML = '';
-  CATS.forEach(c => {
-    const b = document.createElement('button');
-    b.className = 'cat-btn';
-    b.id = 'cb-' + c;
-    b.onclick = () => toggle(c);
-    b.innerHTML = `<span>${c}</span><span class="cat-val" id="cv-${c}">0</span>`;
-    g.appendChild(b);
-  });
-}
-
-// ── Called when user clicks start ──
-async function beginSession() {
-  const name = document.getElementById('annotator-input').value.trim();
+// ── Step 1 → Step 2 ──
+function goStep2() {
+  const name = document.getElementById('name-input').value.trim();
   if (!name) {
-    document.getElementById('annotator-input').style.borderColor = 'var(--red)';
+    document.getElementById('name-error').style.display = 'block';
     return;
   }
   ANNOTATOR = name;
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+  document.getElementById('url-input').focus();
+}
 
-  document.getElementById('start-btn').disabled = true;
-  document.getElementById('annotator-input').disabled = true;
-  document.getElementById('load-status').style.display = 'block';
+// ── Step 2 → Load ──
+async function startLoad() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url.startsWith('https://script.google.com')) {
+    document.getElementById('url-error').style.display = 'block';
+    return;
+  }
+  SCRIPT_URL = url;
+  document.getElementById('url-error').style.display = 'none';
+  document.getElementById('load-btn').disabled = true;
+  document.getElementById('url-input').disabled = true;
+  document.getElementById('loading-status').style.display = 'block';
 
   try {
     const [trainRes, testRes, savedRes] = await Promise.all([
@@ -366,7 +261,6 @@ async function beginSession() {
     data.train = trainRes;
     data.test  = testRes;
 
-    // Restore saved labels for this annotator
     savedRes.forEach(row => {
       if (row.annotator === ANNOTATOR) {
         const key = row.folder + '/' + row.imageName;
@@ -382,44 +276,55 @@ async function beginSession() {
     });
 
   } catch(e) {
-    document.getElementById('setup-card').innerHTML =
-      '<div style="text-align:center;padding:1.5rem 0;color:var(--red)">⚠️ فشل الاتصال — تحقق من إعدادات Apps Script</div>';
+    document.getElementById('loading-status').innerHTML =
+      '<div style="color:var(--red)">⚠️ فشل الاتصال — تحقق من الرابط وصلاحيات Apps Script</div>';
+    document.getElementById('load-btn').disabled = false;
+    document.getElementById('url-input').disabled = false;
     return;
   }
 
-  document.getElementById('setup-card').style.display = 'none';
-  document.getElementById('annotator').style.display  = 'block';
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('annotator').style.display = 'block';
   buildCats();
   cur = 0;
   activeFolder = 'train';
   render();
 }
 
-// ── Keep for compatibility ──
-async function startLoading() {}
+// ── Build category buttons ──
+function buildCats() {
+  const g = document.getElementById('cat-grid');
+  g.innerHTML = '';
+  CATS.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'cat-btn';
+    b.id = 'cb-' + c;
+    b.onclick = () => toggle(c);
+    b.innerHTML = `<span>${c}</span><span class="cat-val" id="cv-${c}">0</span>`;
+    g.appendChild(b);
+  });
+}
 
 // ── Render current image ──
 async function render() {
   const list = data[activeFolder];
   if (!list.length) return;
-
   const item = list[cur];
   const key  = activeFolder + '/' + item.name;
   const lbl  = labels[key];
 
-  document.getElementById('img-name').textContent    = item.name;
+  document.getElementById('img-name').textContent     = item.name;
   document.getElementById('folder-badge').textContent = activeFolder;
-  document.getElementById('folder-badge').className  = 'badge badge-' + activeFolder;
+  document.getElementById('folder-badge').className   = 'badge badge-' + activeFolder;
   document.getElementById('done-badge').style.display = lbl ? 'inline' : 'none';
-  document.getElementById('skip-badge').style.display = lbl ? 'none'  : 'inline';
+  document.getElementById('skip-badge').style.display = lbl ? 'none'   : 'inline';
 
-  // Load image via Apps Script image proxy
   const frame = document.getElementById('img-frame');
   frame.innerHTML = '<div class="img-loading"><div class="spinner"></div>جاري التحميل...</div>';
 
   try {
-    const imgRes = await fetch(`${SCRIPT_URL}?action=image&id=${item.id}`);
-    const json   = await imgRes.json();
+    const res  = await fetch(`${SCRIPT_URL}?action=image&id=${item.id}`);
+    const json = await res.json();
     if (json.data) {
       const img = document.createElement('img');
       img.src = `data:${json.mimeType};base64,${json.data}`;
@@ -433,61 +338,43 @@ async function render() {
     frame.innerHTML = '<div class="img-loading">⚠️ فشل تحميل الصورة</div>';
   }
 
-  // Update category buttons
   CATS.forEach(c => {
     const val = lbl ? (lbl[c] || 0) : 0;
-    const btn = document.getElementById('cb-' + c);
-    const vel = document.getElementById('cv-' + c);
-    btn.className = 'cat-btn' + (val ? ' on' : '');
-    vel.textContent = val;
+    document.getElementById('cb-' + c).className  = 'cat-btn' + (val ? ' on' : '');
+    document.getElementById('cv-' + c).textContent = val;
   });
 
-  // Nav buttons
   document.getElementById('prev-btn').disabled = cur === 0;
   document.getElementById('next-btn').disabled = cur === list.length - 1;
-
-  // Progress
-  const total = data.train.length + data.test.length;
-  const done  = Object.keys(labels).length;
-  const pct   = total ? (done / total * 100).toFixed(1) : 0;
-  document.getElementById('prog-bar').style.width  = pct + '%';
-  document.getElementById('prog-text').textContent = `${cur+1} / ${list.length} (${activeFolder})`;
-  document.getElementById('s-total').textContent   = total;
-  document.getElementById('s-done').textContent    = done;
-  document.getElementById('s-rem').textContent     = total - done;
+  updateStats();
 }
 
+// ── Toggle category ──
 function toggle(cat) {
   const item = data[activeFolder][cur];
   const key  = activeFolder + '/' + item.name;
   if (!labels[key]) labels[key] = {};
   labels[key][cat] = labels[key][cat] ? 0 : 1;
   const val = labels[key][cat];
-  document.getElementById('cb-' + cat).className  = 'cat-btn' + (val ? ' on' : '');
+  document.getElementById('cb-' + cat).className   = 'cat-btn' + (val ? ' on' : '');
   document.getElementById('cv-' + cat).textContent = val;
   document.getElementById('done-badge').style.display = 'inline';
   document.getElementById('skip-badge').style.display = 'none';
-  // update stats
-  const total = data.train.length + data.test.length;
-  const done  = Object.keys(labels).length;
-  document.getElementById('s-done').textContent = done;
-  document.getElementById('s-rem').textContent  = total - done;
-  // auto-save to Google Sheets
+  updateStats();
   saveToSheets(item.name, activeFolder, labels[key]);
 }
 
+// ── Save to Google Sheets ──
 async function saveToSheets(imageName, folder, lbl) {
-  const cats = ['epithelial','granulation','necrosis','fibrin','callus','slough'];
-  const params = new URLSearchParams({
-    action: 'save',
-    imageName, folder,
-    annotator: ANNOTATOR,
-    ...Object.fromEntries(cats.map(c => [c, lbl[c] || 0]))
-  });
+  const params = new URLSearchParams({ action: 'save', imageName, folder, annotator: ANNOTATOR });
+  CATS.forEach(c => params.set(c, lbl[c] || 0));
   try {
     await fetch(`${SCRIPT_URL}?${params}`);
+    const ind = document.getElementById('save-ind');
+    ind.classList.add('show');
+    setTimeout(() => ind.classList.remove('show'), 1500);
   } catch(e) {
-    console.warn('فشل الحفظ التلقائي:', e);
+    console.warn('فشل الحفظ:', e);
   }
 }
 
@@ -500,21 +387,18 @@ function go(dir) {
 function switchFolder(folder) {
   activeFolder = folder;
   cur = 0;
-  document.getElementById('tab-train').className = 'folder-tab' + (folder==='train' ? ' active' : '');
-  document.getElementById('tab-test').className  = 'folder-tab' + (folder==='test'  ? ' active' : '');
+  document.getElementById('tab-train').className = 'folder-tab' + (folder === 'train' ? ' active' : '');
+  document.getElementById('tab-test').className  = 'folder-tab' + (folder === 'test'  ? ' active' : '');
   render();
 }
 
 function jumpFirst() {
-  const allFolders = ['train','test'];
-  for (const f of allFolders) {
+  for (const f of ['train','test']) {
     const list = data[f];
     for (let i = 0; i < list.length; i++) {
       if (!labels[f + '/' + list[i].name]) {
         if (f !== activeFolder) switchFolder(f);
-        cur = i;
-        render();
-        return;
+        cur = i; render(); return;
       }
     }
   }
@@ -525,6 +409,16 @@ function resetCur() {
   const key = activeFolder + '/' + data[activeFolder][cur].name;
   delete labels[key];
   render();
+}
+
+function updateStats() {
+  const total = data.train.length + data.test.length;
+  const done  = Object.keys(labels).length;
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-done').textContent  = done;
+  document.getElementById('s-rem').textContent   = total - done;
+  document.getElementById('prog-bar').style.width = (total ? done/total*100 : 0).toFixed(1) + '%';
+  document.getElementById('prog-text').textContent = cur+1 + ' / ' + (data[activeFolder].length || 0) + ' (' + activeFolder + ')';
 }
 
 function exportCSV() {
@@ -538,9 +432,10 @@ function exportCSV() {
   });
   const csv  = rows.map(r => r.join(',')).join('\n');
   const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  a.href = url; a.download = 'dfuc2020_annotations.csv'; a.click();
+  a.href = URL.createObjectURL(blob);
+  a.download = 'dfuc2020_annotations.csv';
+  a.click();
 }
 </script>
 </body>
