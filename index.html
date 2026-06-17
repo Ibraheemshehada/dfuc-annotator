@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DFUC 2020 — أداة تصنيف الجروح</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green:      #1D9E75;
+    --green-dark: #0F6E56;
+    --green-bg:   #E1F5EE;
+    --red:        #E24B4A;
+    --red-bg:     #FCEBEB;
+    --gray-bg:    #F5F5F3;
+    --border:     #E0DED8;
+    --text:       #1A1A18;
+    --muted:      #6B6A66;
+    --card-bg:    #FFFFFF;
+    --radius:     10px;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--gray-bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 1rem;
+  }
+
+  .app { max-width: 760px; margin: 0 auto; }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .header h1 { font-size: 16px; font-weight: 600; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .prog-text { font-size: 13px; color: var(--muted); }
+
+  /* ── Progress ── */
+  .progress-wrap {
+    background: var(--border);
+    border-radius: 99px;
+    height: 5px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  .progress-fill {
+    background: var(--green);
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  /* ── Stats row ── */
+  .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1rem; }
+  .stat {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    text-align: center;
+  }
+  .stat-num { font-size: 22px; font-weight: 600; }
+  .stat-lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* ── Setup card ── */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .card-title { font-size: 15px; font-weight: 600; margin-bottom: 1rem; }
+
+  .setup-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--gray-bg);
+    margin-bottom: 8px;
+    direction: ltr;
+  }
+  .setup-input:focus { outline: none; border-color: var(--green); }
+
+  .lbl { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* ── Folder tabs ── */
+  .folder-tabs { display: flex; gap: 6px; margin-bottom: 1rem; }
+  .folder-tab {
+    padding: 6px 16px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .folder-tab.active { background: var(--green); color: #fff; border-color: var(--green-dark); }
+
+  /* ── Image viewer ── */
+  .img-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .img-name-txt { font-size: 14px; font-weight: 500; }
+  .badge {
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 99px;
+    font-weight: 500;
+  }
+  .badge-train  { background: #E6F1FB; color: #185FA5; }
+  .badge-test   { background: #FAEEDA; color: #633806; }
+  .badge-done   { background: var(--green-bg); color: var(--green-dark); }
+  .badge-skip   { background: var(--red-bg); color: #A32D2D; }
+
+  .img-frame {
+    width: 100%;
+    height: 280px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--gray-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  .img-frame img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .img-loading {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+  }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 3px solid var(--border);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Categories ── */
+  .cat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1rem; }
+  .cat-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .cat-btn:hover { background: var(--gray-bg); }
+  .cat-btn.on { background: var(--green); border-color: var(--green-dark); color: #fff; }
+  .cat-val { font-size: 14px; font-weight: 700; }
+  .cat-btn.on .cat-val { color: #fff; }
+
+  /* ── Nav buttons ── */
+  .nav-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .btn:hover:not(:disabled) { background: var(--gray-bg); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .btn-primary { background: var(--green); border-color: var(--green-dark); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--green-dark); }
+
+  .actions { display: flex; gap: 8px; }
+  .action-btn {
+    flex: 1;
+    padding: 9px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: all 0.15s;
+    font-weight: 500;
+  }
+  .action-btn:hover { background: var(--gray-bg); }
+  .action-btn.export { color: var(--green-dark); border-color: var(--green); }
+  .action-btn.danger  { color: #A32D2D; border-color: #F09595; }
+  .action-btn.danger:hover { background: var(--red-bg); }
+
+  /* ── Start button ── */
+  .btn-start {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: var(--green);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.15s;
+  }
+  .btn-start:hover { background: var(--green-dark); }
+  .btn-start:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+  .error-msg { font-size: 13px; color: var(--red); margin-top: 6px; }
+
+  @media (max-width: 500px) {
+    .cat-grid { grid-template-columns: repeat(2,1fr); }
+    .stats { grid-template-columns: repeat(3,1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>🩹 DFUC 2020 — تصنيف الجروح</h1>
+    <div class="header-right">
+      <span class="prog-text" id="prog-text">—</span>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-wrap"><div class="progress-fill" id="prog-bar"></div></div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat"><div class="stat-num" id="s-total">0</div><div class="stat-lbl">إجمالي الصور</div></div>
+    <div class="stat"><div class="stat-num" id="s-done" style="color:var(--green)">0</div><div class="stat-lbl">تم تصنيفها</div></div>
+    <div class="stat"><div class="stat-num" id="s-rem">0</div><div class="stat-lbl">متبقي</div></div>
+  </div>
+
+  <!-- Setup -->
+  <div class="card" id="setup-card">
+    <div class="card-title">⚙️ إعداد الاتصال بـ Google Drive</div>
+    <div class="lbl" style="margin-bottom:4px">رابط Apps Script (Web App URL)</div>
+    <input class="setup-input" id="script-url" type="url"
+           placeholder="https://script.google.com/macros/s/YOUR_ID/exec">
+    <div class="error-msg" id="url-error" style="display:none">الرجاء إدخال رابط صحيح</div>
+    <button class="btn-start" id="start-btn" onclick="startLoading()">تحميل الصور والبدء</button>
+  </div>
+
+  <!-- Annotator (hidden until loaded) -->
+  <div id="annotator" style="display:none">
+
+    <!-- Folder tabs -->
+    <div class="folder-tabs">
+      <button class="folder-tab active" id="tab-train" onclick="switchFolder('train')">📁 Train</button>
+      <button class="folder-tab"        id="tab-test"  onclick="switchFolder('test')">📁 Test</button>
+    </div>
+
+    <!-- Image card -->
+    <div class="card">
+      <div class="img-meta">
+        <span class="img-name-txt" id="img-name">—</span>
+        <span class="badge" id="folder-badge">train</span>
+        <span class="badge badge-done" id="done-badge" style="display:none">✓ تم</span>
+        <span class="badge badge-skip" id="skip-badge" style="display:none">○ لم يُصنَّف</span>
+      </div>
+
+      <div class="img-frame" id="img-frame">
+        <div class="img-loading"><div class="spinner"></div>جاري التحميل...</div>
+      </div>
+
+      <div class="lbl" style="margin-bottom:8px">التصنيف — اضغط لتبديل 0 / 1</div>
+      <div class="cat-grid" id="cat-grid"></div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-row">
+      <button class="btn" id="prev-btn" onclick="go(-1)">→ السابق</button>
+      <button class="btn btn-primary" id="next-btn" onclick="go(1)">التالي ←</button>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="action-btn export" onclick="exportCSV()">⬇ تصدير CSV</button>
+      <button class="action-btn"        onclick="jumpFirst()">⏭ أول غير مصنَّف</button>
+      <button class="action-btn danger" onclick="resetCur()">↺ إعادة تعيين</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const CATS = ['epithelial','granulation','necrosis','fibrin','callus','slough'];
+
+let SCRIPT_URL = '';
+let data = { train: [], test: [] };
+let labels = {};
+let cur = 0;
+let activeFolder = 'train';
+
+// ── Build category buttons ──
+function buildCats() {
+  const g = document.getElementById('cat-grid');
+  g.innerHTML = '';
+  CATS.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'cat-btn';
+    b.id = 'cb-' + c;
+    b.onclick = () => toggle(c);
+    b.innerHTML = `<span>${c}</span><span class="cat-val" id="cv-${c}">0</span>`;
+    g.appendChild(b);
+  });
+}
+
+// ── Load image list from Apps Script ──
+async function startLoading() {
+  const url = document.getElementById('script-url').value.trim();
+  if (!url.startsWith('https://script.google.com')) {
+    document.getElementById('url-error').style.display = 'block';
+    return;
+  }
+  document.getElementById('url-error').style.display = 'none';
+  SCRIPT_URL = url;
+
+  const btn = document.getElementById('start-btn');
+  btn.disabled = true;
+  btn.textContent = 'جاري التحميل...';
+
+  try {
+    const [trainRes, testRes] = await Promise.all([
+      fetch(`${SCRIPT_URL}?action=list&folder=train`).then(r => r.json()),
+      fetch(`${SCRIPT_URL}?action=list&folder=test`).then(r => r.json())
+    ]);
+    data.train = trainRes;
+    data.test  = testRes;
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'تحميل الصور والبدء';
+    alert('فشل الاتصال. تحقق من الرابط وصلاحيات Apps Script.');
+    return;
+  }
+
+  document.getElementById('setup-card').style.display = 'none';
+  document.getElementById('annotator').style.display  = 'block';
+  buildCats();
+  cur = 0;
+  activeFolder = 'train';
+  render();
+}
+
+// ── Render current image ──
+async function render() {
+  const list = data[activeFolder];
+  if (!list.length) return;
+
+  const item = list[cur];
+  const key  = activeFolder + '/' + item.name;
+  const lbl  = labels[key];
+
+  document.getElementById('img-name').textContent    = item.name;
+  document.getElementById('folder-badge').textContent = activeFolder;
+  document.getElementById('folder-badge').className  = 'badge badge-' + activeFolder;
+  document.getElementById('done-badge').style.display = lbl ? 'inline' : 'none';
+  document.getElementById('skip-badge').style.display = lbl ? 'none'  : 'inline';
+
+  // Load image via Apps Script image proxy
+  const frame = document.getElementById('img-frame');
+  frame.innerHTML = '<div class="img-loading"><div class="spinner"></div>جاري التحميل...</div>';
+
+  try {
+    const imgRes = await fetch(`${SCRIPT_URL}?action=image&id=${item.id}`);
+    const html   = await imgRes.text();
+    // Extract base64 src from returned HTML
+    const match  = html.match(/src="([^"]+)"/);
+    if (match) {
+      const img = document.createElement('img');
+      img.src = match[1];
+      img.alt = item.name;
+      frame.innerHTML = '';
+      frame.appendChild(img);
+    }
+  } catch(e) {
+    frame.innerHTML = '<div class="img-loading">⚠️ فشل تحميل الصورة</div>';
+  }
+
+  // Update category buttons
+  CATS.forEach(c => {
+    const val = lbl ? (lbl[c] || 0) : 0;
+    const btn = document.getElementById('cb-' + c);
+    const vel = document.getElementById('cv-' + c);
+    btn.className = 'cat-btn' + (val ? ' on' : '');
+    vel.textContent = val;
+  });
+
+  // Nav buttons
+  document.getElementById('prev-btn').disabled = cur === 0;
+  document.getElementById('next-btn').disabled = cur === list.length - 1;
+
+  // Progress
+  const total = data.train.length + data.test.length;
+  const done  = Object.keys(labels).length;
+  const pct   = total ? (done / total * 100).toFixed(1) : 0;
+  document.getElementById('prog-bar').style.width  = pct + '%';
+  document.getElementById('prog-text').textContent = `${cur+1} / ${list.length} (${activeFolder})`;
+  document.getElementById('s-total').textContent   = total;
+  document.getElementById('s-done').textContent    = done;
+  document.getElementById('s-rem').textContent     = total - done;
+}
+
+function toggle(cat) {
+  const item = data[activeFolder][cur];
+  const key  = activeFolder + '/' + item.name;
+  if (!labels[key]) labels[key] = {};
+  labels[key][cat] = labels[key][cat] ? 0 : 1;
+  const val = labels[key][cat];
+  document.getElementById('cb-' + cat).className  = 'cat-btn' + (val ? ' on' : '');
+  document.getElementById('cv-' + cat).textContent = val;
+  document.getElementById('done-badge').style.display = 'inline';
+  document.getElementById('skip-badge').style.display = 'none';
+  // update stats
+  const total = data.train.length + data.test.length;
+  const done  = Object.keys(labels).length;
+  document.getElementById('s-done').textContent = done;
+  document.getElementById('s-rem').textContent  = total - done;
+}
+
+function go(dir) {
+  const list = data[activeFolder];
+  cur = Math.max(0, Math.min(list.length - 1, cur + dir));
+  render();
+}
+
+function switchFolder(folder) {
+  activeFolder = folder;
+  cur = 0;
+  document.getElementById('tab-train').className = 'folder-tab' + (folder==='train' ? ' active' : '');
+  document.getElementById('tab-test').className  = 'folder-tab' + (folder==='test'  ? ' active' : '');
+  render();
+}
+
+function jumpFirst() {
+  const allFolders = ['train','test'];
+  for (const f of allFolders) {
+    const list = data[f];
+    for (let i = 0; i < list.length; i++) {
+      if (!labels[f + '/' + list[i].name]) {
+        if (f !== activeFolder) switchFolder(f);
+        cur = i;
+        render();
+        return;
+      }
+    }
+  }
+  alert('تم تصنيف جميع الصور! 🎉');
+}
+
+function resetCur() {
+  const key = activeFolder + '/' + data[activeFolder][cur].name;
+  delete labels[key];
+  render();
+}
+
+function exportCSV() {
+  const rows = [['#','Image Name','folder',...CATS]];
+  let idx = 1;
+  ['train','test'].forEach(f => {
+    data[f].forEach(item => {
+      const lbl = labels[f+'/'+item.name] || {};
+      rows.push([idx++, item.name, f, ...CATS.map(c => lbl[c] !== undefined ? lbl[c] : '')]);
+    });
+  });
+  const csv  = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'dfuc2020_annotations.csv'; a.click();
+}
+</script>
+</body>
+</html>
